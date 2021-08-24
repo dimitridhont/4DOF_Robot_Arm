@@ -1,13 +1,50 @@
+/*
+ * Control software for cheap-ass 4DOF acrylic servo powered robot arm
+ * ===================================================================
+ * 
+ * V0.1, 24/08/2021 by Dimitri Dhont
+ * 
+ * 
+ * This code just translates joystick positions into either left/right/up/down
+ * There is no "in between", treats the analog input like buttons.
+ * 
+ * If a joystick is moved to a position, the position of the servo is increased by 1
+ * This is followed by a delay to make the motion smooth (and more controllable).
+ * When the joystick is released or moved back to the center position, the servo stops
+ * but keeps its position.
+ * 
+ * The servo numbering as seen from above:
+ * 
+ *         Servo3
+ *      +-------+                  //\\
+ *      |       |                //   \\
+ *      | Servo0|============Servo2
+ *      |       |                \\   //
+ *      +-------+                  \\//
+ *         Servo1
+ *
+ * NOTE: if your analog inputs are stuck on 1023 (full 5V) this means you have the same
+ *       crappy board I received. Check if there is a short between ARef and GND.
+ *       If there is, just bend the pin inwards (or cut it off completely) so it does not make
+ *       contact with the arduino anymore.
+ *
+ *
+ */
+
+
+
+
+
 #include <Servo.h>
 
  
 
-int pinLH = A0;
-int pinLV = A1;
-int pinRH = A3;
-int pinRV = A2;
-int pinLB = 2;
-int pinRB = 4;
+int pinLH = A0;   // Left joystick, horizontal motion
+int pinLV = A1;   // Left joystick, vertical motion
+int pinRH = A3;   // Right joystick, horizontal motion
+int pinRV = A2;   // Right joystick, vertical motion
+int pinLB = 2;    // Left button
+int pinRB = 4;    // Right button
 
  
 Servo myServo0;
@@ -16,8 +53,8 @@ Servo myServo2;
 Servo myServo3;
 
  
-byte servoSpeed = 5;
-byte pos0= 90;
+byte servoSpeed = 5;    // speed of movement. Increase to slow down
+byte pos0= 90;          // inital position of the servo's
 byte pos1 = 90;
 byte pos2 = 90;
 byte pos3 = 90;
@@ -25,10 +62,9 @@ byte prevPos0 = 1;
 byte prevPos1 = 1;
 byte prevPos2 = 1;
 byte prevPos3 = 1;
-unsigned long prevMillis = 0;
+
 
 void setup() {
-  // put your setup code here, to run once:
  
   Serial.begin(230400);
   delay(1000);
@@ -38,8 +74,8 @@ void setup() {
   pinMode(pinLV, INPUT);
   pinMode(pinRH, INPUT);
   pinMode(pinRV, INPUT);
-  pinMode(pinLB, INPUT_PULLUP);
-  pinMode(pinRB, INPUT_PULLUP);
+  pinMode(pinLB, INPUT_PULLUP);   // pullup needed as button connects to ground but has no pullup on the board
+  pinMode(pinRB, INPUT_PULLUP);   // same here...
  
   myServo0.attach(9);
   myServo1.attach(5);
@@ -53,7 +89,7 @@ void setup() {
 }
  
 void loop() {
- 
+
   while(map(analogRead(pinLH), 0, 1023, -2, 2) == 2)
   {
     pos0--;
@@ -75,7 +111,7 @@ void loop() {
   while(map(analogRead(pinLV), 0, 1023, -2, 2) == 2)
   {
     pos1--;
-    if(pos1>180 || pos1<20){pos1=20;}       // limit motion on this axis
+    if(pos1>180 || pos1<20){pos1=20;}       // limit motion on this axis to prevent binding
     myServo1.write(pos1);
     prevPos1 = pos1;
     writePositions();
@@ -127,7 +163,7 @@ void loop() {
   delay(servoSpeed);
  }
  
-  if(digitalRead(pinRB) == LOW || digitalRead(pinLB) == LOW) // return to "zero" position (before turning off)
+  if(digitalRead(pinRB) == LOW || digitalRead(pinLB) == LOW) // return to "zero" position if any button is pressed (before turning off)
   {
     bool dir0 = false;
     bool dir1 = false;
@@ -200,8 +236,6 @@ void loop() {
   }
 }
 
- 
-
 void writePositions()
 {
   Serial.print(" 0:");
@@ -214,4 +248,3 @@ void writePositions()
   Serial.println(pos3);
   
 }
-
