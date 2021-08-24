@@ -30,6 +30,7 @@ OK, some simple ASCII art for the gripper (looking at it from the front):
           =============      -->> base plate for gripper
           ===       ===      -->> 2 rings
     ===========   ========== -->> 2 grippers
+          ===       ===      -->> 2 rings
           =============      -->> connecting plate
                  =========   --> big gear
 
